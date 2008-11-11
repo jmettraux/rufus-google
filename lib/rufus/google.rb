@@ -36,7 +36,8 @@ require 'cgi'
 require 'uri'
 require 'rufus/verbs'
 require 'atom/feed'
-require 'atom/service'
+#require 'atom/service'
+require 'atom/collection'
 require 'rufus/ahttp'
 
 module Rufus
@@ -89,25 +90,18 @@ module Google
   end
 
   def self.get_real_uri (feed_uri, token)
-
     r = Rufus::Verbs.get(
       feed_uri,
       :headers => { 'Authorization' => "GoogleLogin auth=#{token}" },
       :noredir => true)
-
     return feed_uri if r.code == '200'
-
     r['Location']
   end
 
   def self.get_gsessionid (feed_uri, token)
-
     real_uri = get_real_uri(feed_uri, token)
-
     return nil if feed_uri == real_uri
-
     u = URI.parse(real_uri)
-
     query = CGI.unescape(u.query).split('&')
     query.each { |param|
       k, v = param.split("=")
@@ -116,12 +110,22 @@ module Google
     nil
   end
 
-  def self.atom_feed_for (feed_uri, options)
+  def self.feed_for (feed_uri, options)
 
     token = get_auth_token(options)
     #uri = get_real_uri(feed_uri, token)
 
     Atom::Feed.new(feed_uri, Rufus::Google::Http.new(token))
+  end
+
+  def self.collection_for (coll_uri, options)
+
+    token = get_auth_token(options)
+    uri = get_real_uri(coll_uri, token)
+
+    p uri
+
+    Atom::Collection.new(uri, Rufus::Google::Http.new(token))
   end
 
 end
