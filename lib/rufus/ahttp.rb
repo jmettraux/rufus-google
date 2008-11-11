@@ -37,11 +37,13 @@ require 'atom/http'
 module Rufus
 module Google
 
-  class Http <  Atom::Http
+  class Http <  Atom::HTTP
 
     def initialize (auth_token)
 
       @auth_token = auth_token
+
+      super(nil)
     end
 
     def http_request (

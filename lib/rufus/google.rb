@@ -37,6 +37,7 @@ require 'uri'
 require 'rufus/verbs'
 require 'atom/feed'
 require 'atom/service'
+require 'rufus/ahttp'
 
 module Rufus
 module Google
@@ -118,9 +119,9 @@ module Google
   def self.atom_feed_for (feed_uri, options)
 
     token = get_auth_token(options)
-    uri = get_real_uri(feed_uri, token)
+    #uri = get_real_uri(feed_uri, token)
 
-    Atom::Feed.new(uri)
+    Atom::Feed.new(feed_uri, Rufus::Google::Http.new(token))
   end
 
 end
