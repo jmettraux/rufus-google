@@ -31,7 +31,7 @@ spec = Gem::Specification.new do |s|
   s.has_rdoc = true
   s.extra_rdoc_files = [ 'README.txt' ]
 
-  [ 'rufus-verbs' ].each do |d|
+  [ 'rufus-verbs', 'atom-tools' ].each do |d|
     s.requirements << d
     s.add_dependency d
   end
