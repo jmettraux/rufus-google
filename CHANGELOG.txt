@@ -1,0 +1,5 @@
+
+= rufus-google CHANGELOG.txt
+
+== rufus-google - 0.0.1    not yet released
+
