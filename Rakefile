@@ -33,7 +33,7 @@ spec = Gem::Specification.new do |s|
 
   [ 'rufus-verbs', 'atom-tools' ].each do |d|
     s.requirements << d
-    s.add_dependency d
+    s.add_dependency(d)
   end
 
   files = FileList[ "{bin,lib,test}/**/*" ]

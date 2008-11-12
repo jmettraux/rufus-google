@@ -1,7 +1,11 @@
 
 = rufus-google
 
-snippets of Ruby for interacting with Google stuff.
+rufus-google should probably be named "rufus-gcal" for now, as only google calendar stuff is implemented.
+
+This gem leverages 'atom-tools' to play with Google Data APIs.
+
+The only authentication mechanism implemented for now is "ClientLogin".
 
 
 == getting it
@@ -15,13 +19,36 @@ http://rubyforge.org/frs/?group_id=4812
 
 == usage
 
+Using Google Calendar :
 
-look at what's in http://github.com/jmettraux/rufus-google/tree/master/test for now.
+    require 'rubygems'
+    require 'rufus/gcal'
+
+    calendars = Rufus::Google::Calendar.get_calendars(
+      :account => ENV['GUSER'], :password => ENV['GPASS'])
+
+    #calendars.values.each { |c| p [ c.name, c.href ] }
+
+    cal = calendars['gwork']
+
+    event_id = cal.post_quick!('Tennis with John November 13 3pm-4:30pm')
+
+    cal.events(:q => 'tennis').each do |e|
+      puts
+      puts e.to_s
+    end
+
+    cal.delete!(event_id)
+
+    puts "#{cal.events(:q => 'tennis').size} tennis events"
+
+
+Other Google APIs will be covered later, if the need arise.
 
 
 == dependencies
 
-the 'rufus-verbs' gem.
+the 'rufus-verbs' and the 'atom-tools' gems.
 
 
 == mailing list
