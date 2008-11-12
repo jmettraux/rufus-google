@@ -144,24 +144,13 @@ module Google
 
   module CollectionMixin
 
+    attr_reader :name, :href
+
     def initialize (auth_token, entry)
 
       @token = auth_token
-      @entry = entry
-    end
-
-    #
-    # The name of this collection
-    #
-    def name
-      @entry.title.to_s
-    end
-
-    #
-    # The URI of this collection
-    #
-    def href
-      @entry.links.find { |l| l.rel == 'alternate' }.href
+      @name = entry.title.to_s
+      @href = entry.links.find { |l| l.rel == 'alternate' }.href
     end
 
     #
@@ -187,13 +176,20 @@ module Google
       #collection.delete!(o.entry, uri) if uri
 
       uri = Rufus::Google.get_real_uri(o.entry.edit_url, @token)
-      collection.delete!(nil, uri)
+      r = collection.delete!(nil, uri)
         #
         # well... at least it works...
+
+      raise "failed to delete entry" unless r.code.to_i == 200
+
+      r
     end
 
     protected
 
+      #
+      # returns the Atom::Collection instance
+      #
       def collection
 
         return @collection if @collection
@@ -221,6 +217,9 @@ module Google
 
     protected
 
+      #
+      # fetches a value in the extension part of the entry
+      #
       def extension_value (elt_name, att_name)
 
         @entry.extensions.find { |e|
