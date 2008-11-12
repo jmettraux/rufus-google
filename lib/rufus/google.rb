@@ -93,6 +93,8 @@ module Google
   #
   def self.get_auth_token (options)
 
+    return options if options.is_a?(String)
+
     options[:auth] || get_auth_tokens(options)[:auth]
   end
 
@@ -133,9 +135,37 @@ module Google
   def self.feed_for (feed_uri, options)
 
     token = get_auth_token(options)
+
     #uri = get_real_uri(feed_uri, token)
+      # no need for that, when 'getting' atom-tools is OK with redirections
 
     Atom::Feed.new(feed_uri, Rufus::Google::Http.new(token))
+  end
+
+  #
+  # A mixin for entry based objects (like cal events for example)
+  #
+  module EntryMixin
+
+    attr_reader :entry
+
+    #
+    # Creates a google calendar event based on the info found in an
+    # atom-tools Entry instance.
+    #
+    def initialize (entry)
+
+      @entry = entry
+    end
+
+    protected
+
+      def extension_value (elt_name, att_name)
+
+        @entry.extensions.find { |e|
+          e.name == elt_name
+        }.attribute(att_name).value
+      end
   end
 
 end

@@ -61,18 +61,58 @@ module Google
     end
 
     #
+    # Returns all the events in the calendar.
+    #
+    # The query hash can be used to 'query' those events. It currently
+    # accepts :q, :start_min and :start_max as keys.
+    #
+    def events (query={})
+
+      q = query.inject([]) { |a, (k, v)|
+        a << "#{k.to_s.gsub(/\_/, '-')}=#{v}"
+      }.join("&")
+
+      q = "?#{q}" if q.length > 0
+
+      feed = Rufus::Google.feed_for("#{href}#{q}", @token)
+      feed.update!
+
+      feed.entries.collect { |e| Event.new(e) }
+    end
+
+    def collection
+
+      return @collection if @collection
+
+      uri = Rufus::Google.get_real_uri(href, @token)
+      @collection = Atom::Collection.new(uri, Rufus::Google::Http.new(@token))
+    end
+
+    #
     # Posts (creates) an event in this calendar.
     #
     def post! (event)
 
-      uri = Rufus::Google.get_real_uri(href, @token)
-
-      c = Atom::Collection.new(uri, Rufus::Google::Http.new(@token))
-      r = c.post!(event.entry)
+      r = collection.post!(event.entry)
 
       raise "posting event failed : #{r.code}" unless r.code.to_i == 201
 
       r['Location']
+    end
+
+    #
+    # Removes an event from the calendar.
+    #
+    def delete! (event)
+
+      entry = event.is_a?(Event) ? event.entry : event
+      entry, uri = case event
+        when Event then [ event.entry, event.entry.edit_url ]
+        when Atom::Entry then [ event, event.edit_url ]
+        else [ nil, event ]
+      end
+
+      collection.delete!(entry, uri)
     end
 
     #
@@ -117,15 +157,28 @@ module Google
   #
   class Event
 
-    attr_reader :entry
+    include EntryMixin
 
-    #
-    # Creates a google calendar event based on the info found in an
-    # atom-tools Entry instance.
-    #
-    def initialize (entry)
+    def start_time
+      extension_value('when', 'startTime')
+    end
 
-      @entry = entry
+    def end_time
+      extension_value('when', 'endTime')
+    end
+
+    def where
+      extension_value('where', 'valueString')
+    end
+
+    def to_s
+      {
+        :id => @entry.id,
+        :title => @entry.title.to_s,
+        :start_time => start_time,
+        :end_time => end_time,
+        :where => where
+      }.inspect
     end
 
     def self.create_event (opts)

@@ -1,3 +1,3 @@
 
-require 'rufus/google'
+require 'rufus/gcal'
 
