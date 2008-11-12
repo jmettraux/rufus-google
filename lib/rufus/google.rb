@@ -43,8 +43,6 @@ require 'rufus/ahttp'
 module Rufus
 module Google
 
-  VERSION = '0.0.1'
-
   #
   # Gets an auth token via the Google ClientLogin facility
   #
@@ -156,6 +154,8 @@ module Google
     #
     # Posts (creates) an object
     #
+    # Returns the URI of the created resource.
+    #
     def post! (o)
 
       r = collection.post!(o.entry)
@@ -163,7 +163,7 @@ module Google
       raise "posting object of class #{o.class} failed : #{r.code}" \
         unless r.code.to_i == 201
 
-      r
+      r['Location']
     end
 
     #
@@ -175,12 +175,12 @@ module Google
       #uri = r.code.to_i == 302 ? r['Location'] : nil
       #collection.delete!(o.entry, uri) if uri
 
-      uri = Rufus::Google.get_real_uri(o.entry.edit_url, @token)
-      r = collection.delete!(nil, uri)
-        #
-        # well... at least it works...
+      uri = o.is_a?(String) ?  o : o.entry.edit_url
+      uri = Rufus::Google.get_real_uri(uri, @token)
 
-      raise "failed to delete entry" unless r.code.to_i == 200
+      r = collection.delete!(nil, uri)
+
+      raise "failed to delete entry (#{r.code})" unless r.code.to_i == 200
 
       r
     end

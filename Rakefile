@@ -8,7 +8,7 @@ require 'rake/gempackagetask'
 require 'rake/rdoctask'
 require 'rake/testtask'
 
-require 'lib/rufus/google' # Rufus::Google::VERSION
+require 'lib/rufus/gversion' # Rufus::Google::VERSION
 
 #
 # GEM SPEC
@@ -36,7 +36,7 @@ spec = Gem::Specification.new do |s|
     s.add_dependency d
   end
 
-  files = FileList[ "{bin,docs,lib,test}/**/*" ]
+  files = FileList[ "{bin,lib,test}/**/*" ]
   files.exclude 'rdoc'
   s.files = files.to_a
 end
@@ -44,7 +44,7 @@ end
 #
 # tasks
 
-CLEAN.include('pkg', 'html', 'rdoc')
+CLEAN.include('pkg', 'html')
 
 task :default => [ :clean, :repackage ]
 
