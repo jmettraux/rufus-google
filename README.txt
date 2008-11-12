@@ -16,7 +16,7 @@ http://rubyforge.org/frs/?group_id=4812
 == usage
 
 
-not yet.
+look at what's in http://github.com/jmettraux/rufus-google/tree/master/test for now.
 
 
 == dependencies

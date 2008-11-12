@@ -77,38 +77,45 @@ module Google
     raise r.body if code == 403
     raise "not a 200 OK reply : #{code} : #{r.body}" unless code == 200
 
-    r.body.split.inject({}) { |h, l|
+    tokens = r.body.split.inject({}) { |h, l|
       md = l.match(/^(.*)=(.*$)/)
       h[md[1].downcase.to_sym] = md[2]
       h
     }
+
+    options.merge!(tokens)
+
+    tokens
   end
 
   def self.get_auth_token (options)
 
-    get_auth_tokens(options)[:auth]
+    options[:auth] || get_auth_tokens(options)[:auth]
   end
 
   def self.get_real_uri (feed_uri, token)
+
     r = Rufus::Verbs.get(
       feed_uri,
       :headers => { 'Authorization' => "GoogleLogin auth=#{token}" },
       :noredir => true)
+
     return feed_uri if r.code == '200'
+
     r['Location']
   end
 
-  def self.get_gsessionid (feed_uri, token)
-    real_uri = get_real_uri(feed_uri, token)
-    return nil if feed_uri == real_uri
-    u = URI.parse(real_uri)
-    query = CGI.unescape(u.query).split('&')
-    query.each { |param|
-      k, v = param.split("=")
-      return v if k == 'gsessionid'
-    }
-    nil
-  end
+  #def self.get_gsessionid (feed_uri, token)
+  #  real_uri = get_real_uri(feed_uri, token)
+  #  return nil if feed_uri == real_uri
+  #  u = URI.parse(real_uri)
+  #  query = CGI.unescape(u.query).split('&')
+  #  query.each { |param|
+  #    k, v = param.split("=")
+  #    return v if k == 'gsessionid'
+  #  }
+  #  nil
+  #end
 
   def self.feed_for (feed_uri, options)
 
@@ -118,15 +125,12 @@ module Google
     Atom::Feed.new(feed_uri, Rufus::Google::Http.new(token))
   end
 
-  def self.collection_for (coll_uri, options)
-
-    token = get_auth_token(options)
-    uri = get_real_uri(coll_uri, token)
-
-    p uri
-
-    Atom::Collection.new(uri, Rufus::Google::Http.new(token))
-  end
+  #def self.collection_for (coll_uri, options)
+  #  token = get_auth_token(options)
+  #  uri = get_real_uri(coll_uri, token)
+  #  p uri
+  #  Atom::Collection.new(uri, Rufus::Google::Http.new(token))
+  #end
 
 end
 end
