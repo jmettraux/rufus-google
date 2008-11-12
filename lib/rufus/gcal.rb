@@ -40,25 +40,7 @@ module Google
 
   class Calendar
 
-    def initialize (auth_token, entry)
-
-      @token = auth_token
-      @entry = entry
-    end
-
-    #
-    # The name of the calendar.
-    #
-    def name
-      @entry.title.to_s
-    end
-
-    #
-    # The URI of the calendar.
-    #
-    def href
-      @entry.links.find { |l| l.rel == 'alternate' }.href
-    end
+    include CollectionMixin
 
     #
     # Returns all the events in the calendar.
@@ -78,41 +60,6 @@ module Google
       feed.update!
 
       feed.entries.collect { |e| Event.new(e) }
-    end
-
-    def collection
-
-      return @collection if @collection
-
-      uri = Rufus::Google.get_real_uri(href, @token)
-      @collection = Atom::Collection.new(uri, Rufus::Google::Http.new(@token))
-    end
-
-    #
-    # Posts (creates) an event in this calendar.
-    #
-    def post! (event)
-
-      r = collection.post!(event.entry)
-
-      raise "posting event failed : #{r.code}" unless r.code.to_i == 201
-
-      r['Location']
-    end
-
-    #
-    # Removes an event from the calendar.
-    #
-    def delete! (event)
-
-      entry = event.is_a?(Event) ? event.entry : event
-      entry, uri = case event
-        when Event then [ event.entry, event.entry.edit_url ]
-        when Atom::Entry then [ event, event.edit_url ]
-        else [ nil, event ]
-      end
-
-      collection.delete!(entry, uri)
     end
 
     #

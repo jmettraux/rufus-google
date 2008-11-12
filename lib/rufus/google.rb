@@ -142,6 +142,67 @@ module Google
     Atom::Feed.new(feed_uri, Rufus::Google::Http.new(token))
   end
 
+  module CollectionMixin
+
+    def initialize (auth_token, entry)
+
+      @token = auth_token
+      @entry = entry
+    end
+
+    #
+    # The name of this collection
+    #
+    def name
+      @entry.title.to_s
+    end
+
+    #
+    # The URI of this collection
+    #
+    def href
+      @entry.links.find { |l| l.rel == 'alternate' }.href
+    end
+
+    #
+    # Posts (creates) an object
+    #
+    def post! (o)
+
+      r = collection.post!(o.entry)
+
+      raise "posting object of class #{o.class} failed : #{r.code}" \
+        unless r.code.to_i == 201
+
+      r
+    end
+
+    #
+    # Removes an object from the collection
+    #
+    def delete! (o)
+
+      #r = collection.delete!(o.entry, uri)
+      #uri = r.code.to_i == 302 ? r['Location'] : nil
+      #collection.delete!(o.entry, uri) if uri
+
+      uri = Rufus::Google.get_real_uri(o.entry.edit_url, @token)
+      collection.delete!(nil, uri)
+        #
+        # well... at least it works...
+    end
+
+    protected
+
+      def collection
+
+        return @collection if @collection
+
+        uri = Rufus::Google.get_real_uri(href, @token)
+        @collection = Atom::Collection.new(uri, Rufus::Google::Http.new(@token))
+      end
+  end
+
   #
   # A mixin for entry based objects (like cal events for example)
   #
