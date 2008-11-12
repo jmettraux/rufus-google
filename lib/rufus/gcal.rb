@@ -46,14 +46,23 @@ module Google
       @entry = entry
     end
 
+    #
+    # The name of the calendar.
+    #
     def name
       @entry.title.to_s
     end
 
+    #
+    # The URI of the calendar.
+    #
     def href
       @entry.links.find { |l| l.rel == 'alternate' }.href
     end
 
+    #
+    # Posts (creates) an event in this calendar.
+    #
     def post! (event)
 
       uri = Rufus::Google.get_real_uri(href, @token)
@@ -66,13 +75,25 @@ module Google
       r['Location']
     end
 
+    #
+    # Posts (creates) a QuickAdd event
+    # in this calendar.
+    #
+    # http://code.google.com/apis/calendar/developers_guide_protocol.html#CreatingQuickAdd
+    #
     def post_quick! (event_text)
 
-      post!(Event.new_quick(event_text))
+      post!(Event.create_quick(event_text))
     end
 
     #
-    # returns a hash calendar_name => calendar
+    # Returns a hash calendar_name => calendar
+    #
+    # an example :
+    #
+    #   calendars = Rufus::Google::Calendar.get_calendars(
+    #     :account => ENV['GUSER'], :password => env['GPASS'])
+    #   calendars.values.each { |c| p [ c.name, c.href ] }
     #
     def self.get_calendars (options)
 
@@ -91,25 +112,44 @@ module Google
     end
   end
 
+  #
+  # A google calendar event.
+  #
   class Event
 
     attr_reader :entry
 
-    def initialize (opts)
+    #
+    # Creates a google calendar event based on the info found in an
+    # atom-tools Entry instance.
+    #
+    def initialize (entry)
 
-      @entry = Atom::Entry.new
-      @entry.title = opts[:title] || 'no-title'
-      @entry.updated!
-      @entry.content = opts[:content]
-      @entry.content['type'] = opts[:type]
-
-      @entry.extensions.attributes['xmlns:gCal'] =
-        'http://schemas.google.com/gCal/2005'
+      @entry = entry
     end
 
-    def self.new_quick (text)
+    def self.create_event (opts)
 
-      e = Event.new(
+      e = Atom::Entry.new
+      e.title = opts[:title] || 'no-title'
+      e.updated!
+      e.content = opts[:content]
+      e.content['type'] = opts[:type]
+
+      e.extensions.attributes['xmlns:gCal'] =
+        'http://schemas.google.com/gCal/2005'
+
+      Event.new(e)
+    end
+
+    #
+    # Creates a QuickAdd event.
+    #
+    # http://code.google.com/apis/calendar/developers_guide_protocol.html#CreatingQuickAdd
+    #
+    def self.create_quick (text)
+
+      e = create_event(
         :title => 'nada',
         :type => 'html',
         :content => text)
