@@ -11,11 +11,11 @@ cal = calendars['gwork']
 
 id = cal.post_quick!('Tennis with John November 13 3pm-4:30pm')
 
-#cal.events(:q => 'tennis').each do |e|
-#  puts
-#  puts e.to_s
-#  cal.delete!(e)
-#end
+cal.events(:q => 'tennis').each do |e|
+  puts
+  puts e.to_s
+  #cal.delete!(e)
+end
 cal.delete!(id)
 
 puts "#{cal.events(:q => 'tennis').size} tennis events"

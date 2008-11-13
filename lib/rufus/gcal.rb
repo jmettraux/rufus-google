@@ -107,15 +107,15 @@ module Google
     include EntryMixin
 
     def start_time
-      extension_value('when', 'startTime')
+      evalue('when', 'startTime', :time => true)
     end
 
     def end_time
-      extension_value('when', 'endTime')
+      evalue('when', 'endTime', :time => true)
     end
 
     def where
-      extension_value('where', 'valueString')
+      evalue('where', 'valueString')
     end
 
     def to_s
@@ -124,7 +124,8 @@ module Google
         :title => @entry.title.to_s,
         :start_time => start_time,
         :end_time => end_time,
-        :where => where
+        :where => where,
+        :author => "#{author.name} #{author.email}"
       }.inspect
     end
 

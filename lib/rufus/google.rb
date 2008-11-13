@@ -34,6 +34,7 @@
 
 require 'cgi'
 require 'uri'
+require 'time'
 require 'rufus/verbs'
 require 'atom/feed'
 #require 'atom/service'
@@ -211,8 +212,15 @@ module Google
     # atom-tools Entry instance.
     #
     def initialize (entry)
-
       @entry = entry
+    end
+
+    def author
+      @entry.authors.first
+    end
+
+    def authors
+      @entry.authors
     end
 
     protected
@@ -220,11 +228,17 @@ module Google
       #
       # fetches a value in the extension part of the entry
       #
-      def extension_value (elt_name, att_name)
+      # :time => true will attempt to parse the value to a Time instance
+      #
+      def evalue (elt_name, att_name, options={})
 
-        @entry.extensions.find { |e|
+        v = @entry.extensions.find { |e|
           e.name == elt_name
         }.attribute(att_name).value
+
+        v = Time.parse(v) if options[:time] == true
+
+        v
       end
   end
 
