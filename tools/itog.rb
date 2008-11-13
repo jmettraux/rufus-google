@@ -25,7 +25,12 @@
 #++
 #
 
+#
+# this script does a one way synchronization from an iCal calendar to a
+# Google calendar
+#
 # use at your own risk
+#
 
 #
 # TODO list :
@@ -67,7 +72,7 @@ def gpost! (ical_event)
       :end_time => ical_event.dtend.to_s
     ))
   rescue Exception => e
-    puts "     #{e}"
+    puts " !  #{e}"
     false
   end
 end
@@ -78,8 +83,13 @@ end
 #
 def gdelete! (gcal_uri)
 
-  GCAL.delete!(gcal_uri) rescue return false
-  true
+  begin
+    GCAL.delete!(gcal_uri)
+    true
+  rescue Exception => e
+    puts " !  #{e}"
+    false
+  end
 end
 
 #
@@ -138,7 +148,7 @@ icses.each do |ics|
     end
 
     if cached
-      puts " -  #{summary}"
+      puts " -  #{e.summary}"
       unless gdelete!(cached[1])
         puts  " !  failed to delete in gcal... skipping for now"
         next
