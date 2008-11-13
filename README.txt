@@ -7,6 +7,12 @@ This gem leverages 'atom-tools' to play with Google Data APIs.
 
 The only authentication mechanism implemented for now is "ClientLogin".
 
+(There is a one way synchronization tool for ical to gcal at
+
+  http://github.com/jmettraux/rufus-google/tree/master/tools/itog.rb
+
+work in progress...)
+
 
 == getting it
 
