@@ -7,7 +7,7 @@ calendars = Rufus::Google::Calendar.get_calendars(
 
 #calendars.values.each { |c| p [ c.name, c.href ] }
 
-cal = calendars['gwork']
+cal = calendars['gtest']
 
 id = cal.post_quick!('Tennis with John November 13 3pm-4:30pm')
 
@@ -16,7 +16,7 @@ cal.events(:q => 'tennis').each do |e|
   puts e.to_s
   #cal.delete!(e)
 end
-cal.delete!(id)
+#cal.delete!(id)
 
 puts "#{cal.events(:q => 'tennis').size} tennis events"
 

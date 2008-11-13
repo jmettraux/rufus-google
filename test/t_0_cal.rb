@@ -16,7 +16,7 @@ class Test0Cal < Test::Unit::TestCase
     calendars = Rufus::Google::Calendar.get_calendars(
       :account => ENV['GUSER'], :password => ENV['GPASS'])
 
-    cal = calendars['gwork']
+    cal = calendars['gtest']
 
     event_id = cal.post_quick!('Tennis with Zorglub November 13 3pm-4:30pm')
 
