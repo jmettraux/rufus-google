@@ -35,10 +35,13 @@
 #
 # TODO list :
 #
+#   [ ] use optparser
 #   [ ] timezone stuff
 #   [ ] check for stuff removed on the g side
 #       (well, by deleting the itog.yaml and flushing the calendar the user
 #       can trigger a 'reload all'... well...)
+#
+#   [ ] recurring events !!!
 #
 
 require 'find'
@@ -62,6 +65,12 @@ calendars = Rufus::Google::Calendar.get_calendars(
 GCAL = calendars[TARGET_GCAL]
 
 raise "no calendar named '#{TARGET_GCAL}'" unless GCAL
+
+#GCAL_EVENTS = GCAL.events.inject({}) { |h, e| h[
+GCAL_EVENTS = GCAL.events
+
+puts " .  found #{GCAL_EVENTS.size} events in the '#{TARGET_GCAL}' gcal"
+
 
 # Adds a ical event to the target gcalendar.
 # Returns false if the creation failed somehow.
@@ -128,6 +137,7 @@ icses = Dir.entries(events_path).select { |fn| fn.match(/\.ics$/) }
 # treat each event
 
 seen = []
+ievents = 0
 
 icses.each do |ics|
 
@@ -139,6 +149,8 @@ icses.each do |ics|
 
   cal.events.each do |e|
 
+    ievents += 1
+
     summary = "#{e.summary} from #{e.dtstart.to_s} to #{e.dtend.to_s}"
 
     cached = cache[e.uid]
@@ -146,6 +158,10 @@ icses.each do |ics|
     seen << e.uid
 
     if cached and cached[0] == mtime
+      #
+      # already posted to g, but has it changed there meanwhile ?
+      # or vanished ?
+      #
       puts " .  #{summary}"
       next
     end
@@ -191,4 +207,9 @@ end
 
 File.open(cache_path, 'w') { |f| f.write(cache.to_yaml) }
 #puts "cached in #{cache_path}"
+
+#
+# done
+
+puts " .  seen  #{ievents} events in the '#{SOURCE_ICAL}' ical"
 
