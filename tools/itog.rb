@@ -36,7 +36,7 @@
 # TODO list :
 #
 #   [ ] use optparser
-#   [ ] timezone stuff
+#   [x] timezone stuff
 #   [ ] check for stuff removed on the g side
 #       (well, by deleting the itog.yaml and flushing the calendar the user
 #       can trigger a 'reload all'... well...)
@@ -54,6 +54,9 @@ require 'rufus/gcal' # gem 'rufus-google'
 
 SOURCE_ICAL = 'Test'
 TARGET_GCAL = 'gtest'
+
+#DELTA = 0
+DELTA = -9 * 3600 # -09:00
 
 CALDIR = "#{ENV['HOME']}/Library/Calendars/"
 
@@ -77,12 +80,12 @@ puts " .  found #{GCAL_EVENTS.size} events in the '#{TARGET_GCAL}' gcal"
 #
 def gpost! (ical_event)
 
+  st = Time.parse(ical_event.dtstart.to_s) + DELTA
+  et = Time.parse(ical_event.dtend.to_s) + DELTA
+
   begin
     GCAL.post!(Rufus::Google::Event.create(
-      :title => ical_event.summary,
-      :start_time => ical_event.dtstart.to_s,
-      :end_time => ical_event.dtend.to_s
-    ))
+      :title => ical_event.summary, :start_time => st, :end_time => et))
   rescue Exception => e
     puts " !  #{e}"
     false
