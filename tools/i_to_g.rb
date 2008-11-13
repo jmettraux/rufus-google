@@ -25,42 +25,100 @@
 #++
 #
 
+# use at your own risk
+
+#
+# TODO list :
+#
+#   [ ] timezone stuff
+#
+
 require 'find'
+require 'time'
+require 'yaml'
 require 'rubygems'
 require 'plist' # gem 'plist'
 require 'icalendar' # gem 'icalendar'
 
-FROM = 'Test'
+SOURCE_CAL = 'Test'
+TARGET_CAL = 'gtest'
+
+CALDIR = "#{ENV['HOME']}/Library/Calendars/"
 
 plist_path = nil
 
-Find.find("#{ENV['HOME']}/Library/Calendars/") do |path|
+Find.find(CALDIR) do |path|
   if path.match(/\.plist$/)
     pl = Plist.parse_xml(path)
-    if pl['Title'] == FROM
+    if pl['Title'] == SOURCE_CAL
       plist_path = path
       break
     end
   end
 end
 
-events_path = "#{File.dirname(plist_path)}/Events/"
-icss = Dir.entries(events_path).select { |fn| fn.match(/\.ics$/) }
-icss = icss.collect { |fn| "#{events_path}/#{fn}" }
+cal_path = File.dirname(plist_path)
+events_path = "#{cal_path}/Events/"
 
-events = []
+cache_path = "#{cal_path}/itog.yaml"
+cache = File.exist?(cache_path) ? YAML.load(File.read(cache_path)) : {}
 
-events = icss.inject([]) do |a, ics|
-  cal = File.open(ics) { |f| Icalendar.parse(f, true) }
-  a = a + cal.events
+seen = []
+
+icses = Dir.entries(events_path).select { |fn| fn.match(/\.ics$/) }
+
+#
+# treat each event
+
+icses.each do |ics|
+  mtime, cal = File.open(events_path + ics) { |f|
+    [ f.mtime.iso8601, Icalendar.parse(f, true) ]
+  }
+  cal.events.each do |e|
+
+    summary = "#{e.summary} from #{e.dtstart.to_s} to #{e.dtend.to_s}"
+
+    cached = cache[e.uid]
+
+    if cached and cached[0] == mtime
+      puts " . already seen : #{summary}"
+      seen << e.uid
+      next
+    end
+
+    if cached
+      puts " : deleting     : #{summary}"
+      #gcal.delete!(cached[1])
+    end
+
+    #uri = gcal.post!(Rufus::Google::Event.new())
+    uri = 'goog-uri'
+
+    cache[e.uid] = [ mtime, uri, summary ]
+    seen << e.uid
+
+    puts " * added          : #{summary}"
+  end
 end
 
-p events
+#
+# events removed from source
 
-e = events.first
-puts
-#puts e.name
-puts e.summary
-puts e.dtstart
-puts e.dtend
+if seen.sort != cache.keys.sort
+
+  not_seen = cache.keys - seen
+
+  not_seen.each do |uid|
+    info = cache[uid]
+    puts " : deleting       : #{info[2]}"
+    #gcal.delete!(info[1])
+    cache.delete(uid)
+  end
+end
+
+#
+# write cache file
+
+File.open(cache_path, 'w') { |f| f.write(cache.to_yaml) }
+#puts "cached in #{cache_path}"
 
