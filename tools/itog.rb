@@ -36,6 +36,9 @@
 # TODO list :
 #
 #   [ ] timezone stuff
+#   [ ] check for stuff removed on the g side
+#       (well, by deleting the itog.yaml and flushing the calendar the user
+#       can trigger a 'reload all'... well...)
 #
 
 require 'find'
