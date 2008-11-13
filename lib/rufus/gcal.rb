@@ -32,6 +32,7 @@
 # Wed Nov 12 09:14:09 JST 2008
 #
 
+require 'rexml/element'
 require 'rufus/google'
 
 
@@ -129,14 +130,33 @@ module Google
       }.inspect
     end
 
-    def self.create_event (opts)
+    def self.create (opts)
 
       e = Atom::Entry.new
-      e.title = opts[:title] || 'no-title'
+      e.title = opts[:title]
       e.updated!
-      e.content = opts[:content]
-      e.content['type'] = opts[:type]
 
+      if c = opts[:content]
+        e.content = c
+        e.content['type'] = opts[:type] || 'text'
+      end
+
+      if st = opts[:start_time]
+
+        et = opts[:end_time]
+
+        st = st.is_a?(Time) ? st : Time.parse(st)
+        et = st.is_a?(Time) ? et : Time.parse(et)
+
+        w = REXML::Element.new('gd:when')
+        w.add_attribute('startTime', st.iso8601)
+        w.add_attribute('endTime', et.iso8601)
+
+        e.extensions << w
+      end
+
+      e.extensions.attributes['xmlns:gd'] =
+        'http://schemas.google.com/g/2005'
       e.extensions.attributes['xmlns:gCal'] =
         'http://schemas.google.com/gCal/2005'
 
@@ -150,7 +170,7 @@ module Google
     #
     def self.create_quick (text)
 
-      e = create_event(
+      e = create(
         :title => 'nada',
         :type => 'html',
         :content => text)

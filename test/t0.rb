@@ -9,7 +9,12 @@ calendars = Rufus::Google::Calendar.get_calendars(
 
 cal = calendars['gtest']
 
-id = cal.post_quick!('Tennis with John November 13 3pm-4:30pm')
+#id = cal.post_quick!('Tennis with John November 13 3pm-4:30pm')
+t = Time.now
+id = cal.post!(Rufus::Google::Event.create(
+  :title => 'drink Tequila at the Tennis club',
+  :start_time => t,
+  :end_time => t + 3600))
 
 cal.events(:q => 'tennis').each do |e|
   puts

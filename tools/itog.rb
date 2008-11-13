@@ -39,18 +39,46 @@ require 'yaml'
 require 'rubygems'
 require 'plist' # gem 'plist'
 require 'icalendar' # gem 'icalendar'
+require 'rufus/gcal' # gem 'rufus-google'
 
-SOURCE_CAL = 'Test'
-TARGET_CAL = 'gtest'
+SOURCE_ICAL = 'Test'
+TARGET_GCAL = 'gtest'
 
 CALDIR = "#{ENV['HOME']}/Library/Calendars/"
+
+#
+# select target calendar
+
+calendars = Rufus::Google::Calendar.get_calendars(
+  :account => ENV['GUSER'], :password => ENV['GPASS'])
+GCAL = calendars[TARGET_GCAL]
+
+raise "no calendar named '#{TARGET_GCAL}'" unless GCAL
+
+# Adds a ical event to the target gcalendar.
+# Returns false if the creation failed somehow.
+#
+def gpost! (ical_event)
+end
+
+
+# Deletes gcal event with given uri.
+# Returns false if deletion failed
+#
+def gdelete! (gcal_uri)
+  GCAL.delete!(gcal_uri) rescue return false
+  true
+end
+
+#
+# locate source calendar
 
 plist_path = nil
 
 Find.find(CALDIR) do |path|
   if path.match(/\.plist$/)
     pl = Plist.parse_xml(path)
-    if pl['Title'] == SOURCE_CAL
+    if pl['Title'] == SOURCE_ICAL
       plist_path = path
       break
     end
@@ -60,20 +88,30 @@ end
 cal_path = File.dirname(plist_path)
 events_path = "#{cal_path}/Events/"
 
+#
+# [re]load cache : itog.yaml
+
 cache_path = "#{cal_path}/itog.yaml"
 cache = File.exist?(cache_path) ? YAML.load(File.read(cache_path)) : {}
 
-seen = []
+#
+# establish list of .ics files
 
 icses = Dir.entries(events_path).select { |fn| fn.match(/\.ics$/) }
 
 #
 # treat each event
 
+seen = []
+
 icses.each do |ics|
+
   mtime, cal = File.open(events_path + ics) { |f|
+
     [ f.mtime.iso8601, Icalendar.parse(f, true) ]
+      # 'true' : assuming one cal per .ics file
   }
+
   cal.events.each do |e|
 
     summary = "#{e.summary} from #{e.dtstart.to_s} to #{e.dtend.to_s}"

@@ -234,9 +234,11 @@ module Google
 
         v = @entry.extensions.find { |e|
           e.name == elt_name
-        }.attribute(att_name).value
+        }.attribute(att_name)
 
-        v = Time.parse(v) if options[:time] == true
+        return nil unless v
+
+        v = Time.parse(v.value) if options[:time] == true
 
         v
       end
