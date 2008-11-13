@@ -59,6 +59,17 @@ raise "no calendar named '#{TARGET_GCAL}'" unless GCAL
 # Returns false if the creation failed somehow.
 #
 def gpost! (ical_event)
+
+  begin
+    GCAL.post!(Rufus::Google::Event.create(
+      :title => ical_event.summary,
+      :start_time => ical_event.dtstart.to_s,
+      :end_time => ical_event.dtend.to_s
+    ))
+  rescue Exception => e
+    puts "     #{e}"
+    false
+  end
 end
 
 
@@ -66,6 +77,7 @@ end
 # Returns false if deletion failed
 #
 def gdelete! (gcal_uri)
+
   GCAL.delete!(gcal_uri) rescue return false
   true
 end
@@ -118,24 +130,31 @@ icses.each do |ics|
 
     cached = cache[e.uid]
 
+    seen << e.uid
+
     if cached and cached[0] == mtime
-      puts " . already seen : #{summary}"
-      seen << e.uid
+      puts " .  #{summary}"
       next
     end
 
     if cached
-      puts " : deleting     : #{summary}"
-      #gcal.delete!(cached[1])
+      puts " -  #{summary}"
+      unless gdelete!(cached[1])
+        puts  " !  failed to delete in gcal... skipping for now"
+        next
+      end
     end
 
-    #uri = gcal.post!(Rufus::Google::Event.new())
-    uri = 'goog-uri'
+    uri = gpost!(e)
+
+    unless uri
+      puts  " !  failed to add to gcal... skipping for now"
+      next
+    end
 
     cache[e.uid] = [ mtime, uri, summary ]
-    seen << e.uid
 
-    puts " * added          : #{summary}"
+    puts " +  #{summary}"
   end
 end
 
@@ -148,7 +167,7 @@ if seen.sort != cache.keys.sort
 
   not_seen.each do |uid|
     info = cache[uid]
-    puts " : deleting       : #{info[2]}"
+    puts " -  #{info[2]}"
     #gcal.delete!(info[1])
     cache.delete(uid)
   end

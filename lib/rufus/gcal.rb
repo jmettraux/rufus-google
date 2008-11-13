@@ -146,7 +146,7 @@ module Google
         et = opts[:end_time]
 
         st = st.is_a?(Time) ? st : Time.parse(st)
-        et = st.is_a?(Time) ? et : Time.parse(et)
+        et = et.is_a?(Time) ? et : Time.parse(et)
 
         w = REXML::Element.new('gd:when')
         w.add_attribute('startTime', st.iso8601)
