@@ -119,6 +119,8 @@ module Google
       evalue('where', 'valueString')
     end
 
+    # TODO : add method for recurrence
+
     def to_s
       {
         :id => @entry.id,
@@ -145,20 +147,30 @@ module Google
 
         et = opts[:end_time]
 
-        st = st.is_a?(Time) ? st : Time.parse(st)
-        et = et.is_a?(Time) ? et : Time.parse(et)
+        st = st.is_a?(DateTime) ? st : DateTime.parse(st)
+        et = et.is_a?(DateTime) ? et : DateTime.parse(et)
 
         w = REXML::Element.new('gd:when')
-        w.add_attribute('startTime', st.iso8601)
-        w.add_attribute('endTime', et.iso8601)
+        w.add_attribute('startTime', st.to_s)
+        w.add_attribute('endTime', et.to_s)
 
         e.extensions << w
+      end
+
+      if rc = opts[:recurrence]
+
+        r = REXML::Element.new('gd:recurrence')
+        r.text = rc
+
+        e.extensions << r
       end
 
       e.extensions.attributes['xmlns:gd'] =
         'http://schemas.google.com/g/2005'
       e.extensions.attributes['xmlns:gCal'] =
         'http://schemas.google.com/gCal/2005'
+
+      #p e.to_xml.to_s
 
       Event.new(e)
     end

@@ -161,7 +161,7 @@ module Google
 
       r = collection.post!(o.entry)
 
-      raise "posting object of class #{o.class} failed : #{r.code}" \
+      raise "posting object of class #{o.class} failed : #{r.body}" \
         unless r.code.to_i == 201
 
       r['Location']
