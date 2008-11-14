@@ -36,7 +36,7 @@
 # TODO list :
 #
 #   [x] timezone stuff
-#   [ ] recurrence
+#   [x] recurrence
 #   [ ] check for stuff removed on the g side
 #       (well, by deleting the itog.yaml and flushing the calendar the user
 #       can trigger a 'reload all'... well...)
@@ -53,9 +53,6 @@ require 'rufus/gcal' # gem 'rufus-google'
 
 SOURCE_ICAL = 'Test'
 TARGET_GCAL = 'gtest'
-
-#DELTA = 0
-DELTA = -9 # GMT -09:00
 
 CALDIR = "#{ENV['HOME']}/Library/Calendars/"
 
@@ -75,10 +72,9 @@ puts " .  found #{GCAL_EVENTS.size} events in the '#{TARGET_GCAL}' gcal"
 
 
 def adjust_dt (dt)
-  t = Time.parse(dt.to_s)
-  DateTime.parse((t + DELTA * 3600).to_s)
+  return nil unless dt
+  dt - Time.now.gmt_offset.to_f / (24 * 3600)
 end
-
 
 # Adds a ical event to the target gcalendar.
 # Returns false if the creation failed somehow.
@@ -86,8 +82,8 @@ end
 def gpost! (ical_event)
 
   r = ical_event.properties['rrule']
-  st = ical_event.dtstart ? adjust_dt(ical_event.dtstart) : nil
-  et = ical_event.dtend ? adjust_dt(ical_event.dtend) : nil
+  st = adjust_dt(ical_event.dtstart)
+  et = adjust_dt(ical_event.dtend)
 
   opts = { :title => ical_event.summary }
   opts[:start_time] = st if st and (not r)
@@ -95,8 +91,8 @@ def gpost! (ical_event)
 
   if r
     s = ''
-    s << "DTSTART;VALUE=DATE:#{st.to_ical}\n" if st
-    s << "DTEND;VALUE=DATE:#{et.to_ical}\n" if et
+    s << "DTSTART:#{st.to_ical}\n" if st
+    s << "DTEND:#{et.to_ical}\n" if et
     s << "RRULE:#{r}\n"
     opts[:recurrence] = s
   end
