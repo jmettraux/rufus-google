@@ -18,6 +18,9 @@ class Test0Cal < Test::Unit::TestCase
 
     cal = calendars['gtest']
 
+    #cal.events(:q => 'zorglub').each { |e| puts e.entry.to_s }
+    #cal.events(:q => 'zorglub').each { |e| puts e.to_s }
+    #return
     cal.events(:q => 'zorglub').each { |e| cal.delete!(e) }
 
     event_id = cal.post_quick!('Tennis with Zorglub November 13 3pm-4:30pm')

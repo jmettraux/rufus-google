@@ -44,13 +44,15 @@ module Google
       @auth_token = auth_token
 
       super(nil)
+
+      @allow_all_redirects = true
     end
 
     def http_request (
       url_s, method, body=nil, headers={}, www_a=nil, redir_limit=5)
 
       headers['Authorization'] = "GoogleLogin auth=#{@auth_token}"
-      #headers['GData-Version'] = '2'
+      headers['GData-Version'] = GDATA_VERSION
 
       super(url_s, method, body, headers, www_a, redir_limit)
     end

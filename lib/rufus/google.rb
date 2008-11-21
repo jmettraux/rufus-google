@@ -44,6 +44,8 @@ require 'rufus/ahttp'
 module Rufus
 module Google
 
+  GDATA_VERSION = '1'
+
   #
   # Gets an auth token via the Google ClientLogin facility
   #
@@ -66,9 +68,12 @@ module Google
     data << "service=#{service}&"
     data << "source=#{source}"
 
+    headers = { 'Content-type' => 'application/x-www-form-urlencoded' }
+    headers['GData-Version'] = GDATA_VERSION
+
     r = Rufus::Verbs.post(
       'https://www.google.com/accounts/ClientLogin',
-      :headers => { 'Content-type' => 'application/x-www-form-urlencoded' },
+      :headers => headers,
       :data => data)
 
     code = r.code.to_i
@@ -98,48 +103,12 @@ module Google
   end
 
   #
-  # Returns the redirection location (atom-tools seems not ok with posting
-  # and getting redirected so have to use that method)
-  #
-  def self.get_real_uri (uri, token)
-
-    r = Rufus::Verbs.get(
-      uri,
-      :headers => {
-        'Authorization' => "GoogleLogin auth=#{token}",
-        #'GData-Version' => '2'
-      },
-      :noredir => true)
-
-    return uri if r.code == '200'
-
-    r['Location']
-  end
-
-  #--
-  #def self.get_gsessionid (feed_uri, token)
-  #  real_uri = get_real_uri(feed_uri, token)
-  #  return nil if feed_uri == real_uri
-  #  u = URI.parse(real_uri)
-  #  query = CGI.unescape(u.query).split('&')
-  #  query.each { |param|
-  #    k, v = param.split("=")
-  #    return v if k == 'gsessionid'
-  #  }
-  #  nil
-  #end
-  #++
-
-  #
   # A small method for getting an atom-tools Feed instance.
   # The options hash is a get_auth_token() hash.
   #
   def self.feed_for (feed_uri, options)
 
     token = get_auth_token(options)
-
-    #uri = get_real_uri(feed_uri, token)
-      # no need for that, when 'getting' atom-tools is OK with redirections
 
     Atom::Feed.new(feed_uri, Rufus::Google::Http.new(token))
   end
@@ -175,16 +144,11 @@ module Google
     #
     def delete! (o)
 
-      #r = collection.delete!(o.entry, uri)
-      #uri = r.code.to_i == 302 ? r['Location'] : nil
-      #collection.delete!(o.entry, uri) if uri
-
       uri = o.is_a?(String) ?  o : o.entry.edit_url
-      uri = Rufus::Google.get_real_uri(uri, @token)
-
       r = collection.delete!(nil, uri)
 
-      raise "failed to delete entry (#{r.code})" unless r.code.to_i == 200
+      raise "failed to delete entry (#{r.code}): #{r.body}" \
+        unless r.code.to_i == 200
 
       r
     end
@@ -198,8 +162,8 @@ module Google
 
         return @collection if @collection
 
-        uri = Rufus::Google.get_real_uri(href, @token)
-        @collection = Atom::Collection.new(uri, Rufus::Google::Http.new(@token))
+        @collection = Atom::Collection.new(
+          href, Rufus::Google::Http.new(@token))
       end
   end
 
