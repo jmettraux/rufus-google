@@ -41,6 +41,7 @@
 #       (well, by deleting the itog.yaml and flushing the calendar the user
 #       can trigger a 'reload all'... well...)
 #   [ ] use optparser
+#   [ ] package in gem:bin/ or something like that
 #
 
 require 'find'
@@ -50,6 +51,9 @@ require 'rubygems'
 require 'plist' # gem 'plist'
 require 'icalendar' # gem 'icalendar'
 require 'rufus/gcal' # gem 'rufus-google'
+
+#
+# options
 
 SOURCE_ICAL = 'Test'
 TARGET_GCAL = 'gtest'
@@ -64,6 +68,11 @@ calendars = Rufus::Google::Calendar.get_calendars(
 GCAL = calendars[TARGET_GCAL]
 
 raise "no calendar named '#{TARGET_GCAL}'" unless GCAL
+
+#
+# loads all events in the target calendar
+#
+# :(  what if there's a shitload of them ?
 
 #GCAL_EVENTS = GCAL.events.inject({}) { |h, e| h[
 GCAL_EVENTS = GCAL.events
@@ -181,6 +190,8 @@ icses.each do |ics|
       # already posted to g, but has it changed there meanwhile ?
       # or vanished ?
       #
+      # TODO : check if in GCAL_EVENTS or if gcal_event.mtime matches...
+      #
       puts " .  #{summary}"
       next
     end
@@ -188,7 +199,7 @@ icses.each do |ics|
     if cached
       puts " -  #{e.summary}"
       unless gdelete!(cached[1])
-        puts  " !  failed to delete in gcal... skipping for now"
+        puts  ' !  failed to delete in gcal... skipping for now'
         next
       end
     end
@@ -196,7 +207,7 @@ icses.each do |ics|
     uri = gpost!(e)
 
     unless uri
-      puts  " !  failed to add to gcal... skipping for now"
+      puts  ' !  failed to add to gcal... skipping for now'
       next
     end
 
