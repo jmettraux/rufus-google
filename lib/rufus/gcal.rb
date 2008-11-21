@@ -145,14 +145,21 @@ module Google
 
       if st = opts[:start_time]
 
-        et = opts[:end_time]
-
         st = st.is_a?(DateTime) ? st : DateTime.parse(st)
-        et = et.is_a?(DateTime) ? et : DateTime.parse(et)
+        st = st.to_s
+        st = st[0, 10] if opts[:all_day]
 
         w = REXML::Element.new('gd:when')
-        w.add_attribute('startTime', st.to_s)
-        w.add_attribute('endTime', et.to_s)
+        w.add_attribute('startTime', st)
+
+        if et = opts[:end_time]
+
+          et = et.is_a?(DateTime) ? et : DateTime.parse(et)
+          et = et.to_s
+          et = et[0, 10] if opts[:all_day]
+
+          w.add_attribute('endTime', et)
+        end
 
         e.extensions << w
       end

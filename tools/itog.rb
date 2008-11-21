@@ -1,4 +1,3 @@
-
 #
 #--
 # Copyright (c) 2008, John Mettraux, jmettraux@gmail.com
@@ -37,7 +36,7 @@
 #
 #   [x] timezone stuff
 #   [x] recurrence
-#   [ ] all day events
+#   [ ] all day events (OK, but 1 day late)
 #   [ ] check for stuff removed on the g side
 #       (well, by deleting the itog.yaml and flushing the calendar the user
 #       can trigger a 'reload all'... well...)
@@ -90,7 +89,7 @@ def gpost! (ical_event)
   opts[:start_time] = st if st and (not r)
   opts[:end_time] = et if et and (not r)
 
-  #opts[:end_time] = st + 1 if ical_event.properties['summary'] == 'ALL DAY'
+  opts[:all_day] = (ical_event.properties['summary'] == 'ALL DAY')
 
   if r
     s = ''
@@ -104,6 +103,7 @@ def gpost! (ical_event)
     GCAL.post!(Rufus::Google::Event.create(opts))
   rescue Exception => e
     puts " !  #{e}"
+    #puts e.backtrace
     false
   end
 end
