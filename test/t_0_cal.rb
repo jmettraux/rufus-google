@@ -25,9 +25,11 @@ class Test0Cal < Test::Unit::TestCase
 
     event_id = cal.post_quick!('Tennis with Zorglub November 13 3pm-4:30pm')
 
-    assert_equal 1, cal.events(:q => 'zorglub').size
+    evts = cal.events(:q => 'zorglub')
 
-    cal.delete!(event_id)
+    assert_equal 1, evts.size
+
+    cal.delete!(evts.first)
 
     assert_equal [], cal.events(:q => 'zorglub')
   end

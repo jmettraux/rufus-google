@@ -124,6 +124,7 @@ module Google
     def to_s
       {
         :id => @entry.id,
+        :etag => etag,
         :title => @entry.title.to_s,
         :start_time => start_time,
         :end_time => end_time,

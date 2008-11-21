@@ -44,6 +44,7 @@ module Google
       @auth_token = auth_token
 
       super(nil)
+      #super({})
 
       @allow_all_redirects = true
     end

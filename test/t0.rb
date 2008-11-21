@@ -20,7 +20,9 @@ cal = calendars['gtest']
 cal.events().each do |e|
   puts
   puts e.to_s
-  puts e.entry.to_s.gsub(/</, "\n<")
+  #puts e.entry.to_s.gsub(/</, "\n<")
+  #puts e.entry.inspect
+  #p e.entry.extensions.attributes
   #cal.delete!(e)
 end
 #cal.delete!(id)

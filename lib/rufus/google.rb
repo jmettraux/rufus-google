@@ -44,7 +44,7 @@ require 'rufus/ahttp'
 module Rufus
 module Google
 
-  GDATA_VERSION = '1'
+  GDATA_VERSION = '2'
 
   #
   # Gets an auth token via the Google ClientLogin facility
@@ -142,10 +142,12 @@ module Google
     #
     # Removes an object from the collection
     #
-    def delete! (o)
+    def delete! (entry)
 
-      uri = o.is_a?(String) ?  o : o.entry.edit_url
-      r = collection.delete!(nil, uri)
+      uri = entry.entry.edit_url
+
+      #r = collection.delete!(nil, uri)
+      r = collection.http.delete(uri, nil, { 'If-Match' => entry.etag })
 
       raise "failed to delete entry (#{r.code}): #{r.body}" \
         unless r.code.to_i == 200
@@ -188,6 +190,10 @@ module Google
 
     def authors
       @entry.authors
+    end
+
+    def etag
+      @entry.extensions.attributes['gd:etag']
     end
 
     protected
