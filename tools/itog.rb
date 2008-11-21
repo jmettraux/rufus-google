@@ -37,6 +37,7 @@
 #
 #   [x] timezone stuff
 #   [x] recurrence
+#   [ ] all day events
 #   [ ] check for stuff removed on the g side
 #       (well, by deleting the itog.yaml and flushing the calendar the user
 #       can trigger a 'reload all'... well...)
@@ -88,6 +89,8 @@ def gpost! (ical_event)
   opts = { :title => ical_event.summary }
   opts[:start_time] = st if st and (not r)
   opts[:end_time] = et if et and (not r)
+
+  #opts[:end_time] = st + 1 if ical_event.properties['summary'] == 'ALL DAY'
 
   if r
     s = ''
