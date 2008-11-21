@@ -18,6 +18,8 @@ class Test0Cal < Test::Unit::TestCase
 
     cal = calendars['gtest']
 
+    cal.events(:q => 'zorglub').each { |e| cal.delete!(e) }
+
     event_id = cal.post_quick!('Tennis with Zorglub November 13 3pm-4:30pm')
 
     assert_equal 1, cal.events(:q => 'zorglub').size

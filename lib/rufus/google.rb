@@ -105,7 +105,10 @@ module Google
 
     r = Rufus::Verbs.get(
       uri,
-      :headers => { 'Authorization' => "GoogleLogin auth=#{token}" },
+      :headers => {
+        'Authorization' => "GoogleLogin auth=#{token}",
+        #'GData-Version' => '2'
+      },
       :noredir => true)
 
     return uri if r.code == '200'

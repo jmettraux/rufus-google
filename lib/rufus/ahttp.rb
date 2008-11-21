@@ -50,6 +50,7 @@ module Google
       url_s, method, body=nil, headers={}, www_a=nil, redir_limit=5)
 
       headers['Authorization'] = "GoogleLogin auth=#{@auth_token}"
+      #headers['GData-Version'] = '2'
 
       super(url_s, method, body, headers, www_a, redir_limit)
     end
