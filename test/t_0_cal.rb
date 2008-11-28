@@ -28,6 +28,7 @@ class Test0Cal < Test::Unit::TestCase
     evts = cal.events(:q => 'zorglub')
 
     assert_equal 1, evts.size
+    assert_equal 'Tennis with Zorglub', evts.first.title
 
     cal.delete!(evts.first)
 

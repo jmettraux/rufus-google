@@ -3,3 +3,5 @@
 
 == rufus-google - 0.0.1    not yet released
 
+- todo   #23036 : integrated title patch by Thibaut Barrere
+

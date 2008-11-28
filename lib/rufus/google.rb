@@ -184,6 +184,10 @@ module Google
       @entry = entry
     end
 
+    def title
+      @entry.title.to_s
+    end
+
     def author
       @entry.authors.first
     end

@@ -1,5 +1,9 @@
 
 = CREDITS.txt
 
+== Contributors
+
+Thibaut Barrere - title patch
+
 == Feedback
 
