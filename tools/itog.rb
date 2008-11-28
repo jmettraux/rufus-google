@@ -36,11 +36,11 @@
 #
 #   [x] timezone stuff
 #   [x] recurrence
+#   [x] use optparser
 #   [ ] all day events (OK, but 1 day late)
 #   [ ] check for stuff removed on the g side
 #       (well, by deleting the itog.yaml and flushing the calendar the user
 #       can trigger a 'reload all'... well...)
-#   [ ] use optparser
 #   [ ] package in gem:bin/ or something like that
 #
 
@@ -52,13 +52,50 @@ require 'plist' # gem 'plist'
 require 'icalendar' # gem 'icalendar'
 require 'rufus/gcal' # gem 'rufus-google'
 
+ITOG_VERSION = '0.1.0'
+
 #
 # options
 
-SOURCE_ICAL = 'Test'
-TARGET_GCAL = 'gtest'
+opts = ARGV.inject([]) { |a, e|
+  t, v = e[0, 1] == '-' ? [ a, [ e ] ] : [ a.last, e ]; t << v; a
+}.inject({}) { |h, (k, v)|
+  h[k] = v || true; h
+} # cheap 5-liner optparse
 
-CALDIR = "#{ENV['HOME']}/Library/Calendars/"
+if opts['--help'] or opts['-h']
+  puts %{
+  = ruby itog.rb OPTS
+  
+  pushes a local iCalendar to a google calendar
+  
+  == command line options
+
+  -v, --version   : print the version of itog.rb and exits
+  -h, --help      : print this help text and exits
+
+  mandatory :
+
+  -s, --source n  : specifies the 'source' iCalendar name
+  -t, --target n  : specifies the 'target' google calendar name
+
+  optional :
+
+  -c, --caldir d  : specifies the directory 'Calendars'
+                    defaults to ~/Library/Calendars/
+  }
+  exit(0)
+end
+
+if opts['--version'] or opts['-v']
+  puts "rufus-google itog.rb (ical to gcal) v#{ITOG_VERSION} (MIT license) jmettraux@gmail.com"
+  exit(0)
+end
+
+SOURCE_ICAL = opts['--source'] || opts['-s'] || 'Test'
+TARGET_ICAL = opts['--target'] || opts['-t'] || 'gtest'
+
+CALDIR = opts['--caldir'] || opts['-c'] || "#{ENV['HOME']}/Library/Calendars/"
 
 #
 # select target calendar
