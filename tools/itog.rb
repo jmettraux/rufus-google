@@ -37,10 +37,8 @@
 #   [x] timezone stuff
 #   [x] recurrence
 #   [x] use optparser
+#   [x] check for stuff removed on the g side
 #   [ ] all day events (OK, but 1 day late)
-#   [ ] check for stuff removed on the g side
-#       (well, by deleting the itog.yaml and flushing the calendar the user
-#       can trigger a 'reload all'... well...)
 #   [ ] package in gem:bin/ or something like that
 #
 
@@ -111,12 +109,16 @@ raise "no calendar named '#{TARGET_GCAL}'" unless GCAL
 #
 # :(  what if there's a shitload of them ?
 
-#GCAL_EVENTS = GCAL.events.inject({}) { |h, e| h[
-GCAL_EVENTS = GCAL.events
+query = {} # TODO : restrict to a given (opt) timeframe
+
+GCAL_EVENTS = GCAL.events(query).inject({}) { |h, e|
+  h[e.entry.id.split('/').last] = e; h
+} # is the event id unique ??
 
 puts " .  found #{GCAL_EVENTS.size} events in the '#{TARGET_GCAL}' gcal"
 
-
+# ical datetime to UTC
+#
 def adjust_dt (dt)
   return nil unless dt
   dt - DateTime.now.offset
@@ -154,14 +156,21 @@ def gpost! (ical_event)
   end
 end
 
+# Returns the entry corresponding to the given gcal URI
+#
+def lookup_entry (gcal_uri)
+  GCAL_EVENTS[gcal_uri.split('/').last]
+end
 
-# Deletes gcal event with given uri.
+# Deletes gcal event with given entry.
 # Returns false if deletion failed
 #
 def gdelete! (gcal_uri)
 
+  gcal_entry = gcal_uri.is_a?(String) ? lookup_entry(gcal_uri) : gcal_uri
+
   begin
-    GCAL.delete!(gcal_uri)
+    GCAL.delete!(gcal_entry)
     true
   rescue Exception => e
     puts " !  #{e}"
@@ -208,7 +217,7 @@ icses.each do |ics|
 
   mtime, cal = File.open(events_path + ics) { |f|
 
-    [ f.mtime.iso8601, Icalendar.parse(f, true) ]
+    [ f.mtime.gmtime.iso8601, Icalendar.parse(f, true) ]
       # 'true' : assuming one cal per .ics file
   }
 
@@ -220,22 +229,25 @@ icses.each do |ics|
 
     cached = cache[e.uid]
 
+    on_gcal = cached ? lookup_entry(cached[1]) : false
+    gcal_ok = if on_gcal
+      pt = on_gcal.entry.published.iso8601
+      mt = on_gcal.entry.edited.iso8601
+      (pt == mt)
+    else
+      false
+    end
+
     seen << e.uid
 
-    if cached and cached[0] == mtime
-      #
-      # already posted to g, but has it changed there meanwhile ?
-      # or vanished ?
-      #
-      # TODO : check if in GCAL_EVENTS or if gcal_event.mtime matches...
-      #
+    if cached and cached[0] == mtime and gcal_ok
       puts " .  #{summary}"
       next
     end
 
-    if cached
+    if cached and on_gcal
       puts " -  #{e.summary}"
-      unless gdelete!(cached[1])
+      unless gdelete!(on_gcal)
         puts  ' !  failed to delete in gcal... skipping for now'
         next
       end
@@ -264,7 +276,7 @@ if seen.sort != cache.keys.sort
   not_seen.each do |uid|
     info = cache[uid]
     puts " -  #{info[2]}"
-    #gcal.delete!(info[1])
+    gdelete!(info[1])
     cache.delete(uid)
   end
 end
