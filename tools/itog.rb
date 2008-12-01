@@ -93,7 +93,7 @@ if opts['--version'] or opts['-v']
 end
 
 SOURCE_ICAL = opts['--source'] || opts['-s'] || 'Test'
-TARGET_ICAL = opts['--target'] || opts['-t'] || 'gtest'
+TARGET_GCAL = opts['--target'] || opts['-t'] || 'gtest'
 
 CALDIR = opts['--caldir'] || opts['-c'] || "#{ENV['HOME']}/Library/Calendars/"
 
@@ -119,7 +119,7 @@ puts " .  found #{GCAL_EVENTS.size} events in the '#{TARGET_GCAL}' gcal"
 
 def adjust_dt (dt)
   return nil unless dt
-  dt - Time.now.gmt_offset.to_f / (24 * 3600)
+  dt - DateTime.now.offset
 end
 
 # Adds a ical event to the target gcalendar.
